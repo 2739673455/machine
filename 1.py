@@ -24,6 +24,7 @@ p1=np.array([0,0])
 p4=np.array([-10,-10])
 p2=p1+l12*np.hstack((np.cos(n),np.sin(n)))
 p3=crank_rocker(p1,p2,p4,l23,l34,-1)
+print(p3)
 
 
 fig,ax=plt.subplots()
