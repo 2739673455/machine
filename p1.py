@@ -42,23 +42,31 @@ def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
     p3 = p_rl(p4,l34,theta043)
     return p3,theta043
 
-def rrp(p5,p2,theta054,theta543,l23,l34,clockwise=1): #曲柄滑块 2维 clockwise:234顺时针=1，234逆时针=-1
-    theta033_ = 0
+def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==theta033_:1,-1
     s = np.array([np.cos(theta054),np.sin(theta054)])
     d23 = np.cross(p2-p5,s)-l34*np.sin(theta543)
-    theta023 = (theta054-np.pi*((clockwise+1)/2)-np.arcsin(d23/l23)*clockwise).reshape([-1,1])
+    theta023 = (theta054-np.pi*((i+1)/2)-np.arcsin(d23/l23)*i).reshape([-1,1])
     theta034 = theta054+theta543
     p3 = p2+l23*np.hstack([np.cos(theta023),np.sin(theta023)])
     p4 = p_rl(p3,l34,theta034)
     return p3,p4
 
+# def rrp(p5,p2,theta543,theta054,theta033_,l23,l34): #曲柄滑块 2维
+#     p5 = p_rl(p5,l34,theta054+theta543+np.pi)
+#     s = np.array([np.cos(theta033_),np.sin(theta033_)])
+#     d23 = np.cross(p2-p5,s)
+#     theta023 = (theta033_-np.arcsin(d23/l23)+np.pi).reshape([-1,1])
+#     theta034 = theta054+theta543
+#     p3 = p_rl(p2,l23,theta023)
+#     p4 = p_rl(p3,l34,theta034)
+#     return p3,p4
+
 def rpr(p2,p4,l23,theta432): #曲柄滑块 2维
     #l12>l23+l14时只有唯一解，反之有两个解且其中一种情况中3，4点出现重合，即theta432会变为theta432+pi
-    i=np.sin(theta432)/abs(np.sin(theta432))
     l24 = np.sqrt(np.sum((p2-p4)**2,axis=1))
     theta024 = solve_theta(p4-p2)
     theta243 = np.arcsin(l23*np.sin(theta432)/l24)
-    theta423 = np.pi*i+theta243+theta432
+    theta423 = np.pi+theta243+theta432
     theta023 = (theta024+theta423).reshape([-1,1])
     theta043 = (theta024+np.pi+theta243).reshape([-1,1])
     p3 = p_rl(p2,l23,theta023)
