@@ -34,32 +34,32 @@ def p_rp(p0,p1,theta,axis=1): #3维坐标绕过p0点且垂直于坐标轴的直�
     p2 = np.insert(p2,axis,p1[axis],axis=1)+p0
     return p2
 
-def crank_rocker(p2,p4,l23,l34,clockwise=1): #曲柄摇杆 2维  clockwise:134顺时针=1，134逆时针=-1
+def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
     l24 = np.sqrt(np.sum((p2-p4)**2,axis=1))
     theta042 = solve_theta(p2-p4)
-    theta243 = np.arccos((l34**2+l24**2-l23**2)/2/l34/l24)*(-clockwise)
+    theta243 = np.arccos((l34**2+l24**2-l23**2)/2/l34/l24)*i
     theta043 = (theta042+theta243).reshape([-1,1])
     p3 = p_rl(p4,l34,theta043)
     return p3,theta043
 
-def rrp(p0,p2,theta0,l23,l34,axis=1): #曲柄滑块 3维
-    s = np.array([np.cos(theta0),np.sin(theta0)])
-    p2_ = np.delete(p2,axis,axis=1)
-    p0_ = np.delete(p0,axis)
-    d = np.cross(p2_-p0_,s)-l34
-    theta023 = theta0-np.pi-np.arcsin(d/l23).reshape([-1,1])
-    p3 = p2_+l23*np.hstack([np.cos(theta023),np.sin(theta023)])
-    p3 =np.insert(p3,axis,p0[axis],axis=1)
-    return p3
+def rrp(p5,p2,theta054,theta543,l23,l34,clockwise=1): #曲柄滑块 2维 clockwise:234顺时针=1，234逆时针=-1
+    s = np.array([np.cos(theta054),np.sin(theta054)])
+    d23 = np.cross(p2-p5,s)-l34*np.sin(theta543)
+    theta023 = (theta054-np.pi*((clockwise+1)/2)-np.arcsin(d23/l23)*clockwise).reshape([-1,1])
+    theta034 = theta054+theta543
+    p3 = p2+l23*np.hstack([np.cos(theta023),np.sin(theta023)])
+    p4 = p_rl(p3,l34,theta034)
+    return p3,p4
 
-def rpr(p2,p4,l23,clockwise=1): #曲柄滑块 2维 clockwise:234顺时针=1，234逆时针=-1
-    theta042 = solve_theta(p2-p4)
-    theta024 = theta042-np.pi
+def rpr(p2,p4,l23,theta432): #曲柄滑块 2维
+    #l12>l23+l14时只有唯一解，反之有两个解且其中一种情况中3，4点出现重合，即theta432会变为theta432+pi
+    i=np.sin(theta432)/abs(np.sin(theta432))
     l24 = np.sqrt(np.sum((p2-p4)**2,axis=1))
-    theta423 = np.arccos(l23/l24)*clockwise
+    theta024 = solve_theta(p4-p2)
+    theta243 = np.arcsin(l23*np.sin(theta432)/l24)
+    theta423 = np.pi*i+theta243+theta432
     theta023 = (theta024+theta423).reshape([-1,1])
-    theta243 = theta423+np.pi/2*(-clockwise)
-    theta043 = theta042+theta243
+    theta043 = (theta024+np.pi+theta243).reshape([-1,1])
     p3 = p_rl(p2,l23,theta023)
     return p3,theta043
 
@@ -122,12 +122,12 @@ l1_ab_xz = np.sqrt(l1_ab**2-(p1_b[:,1]-p1_a[1])**2)
 l1_bc1_xz = np.sqrt(l1_bc1**2-p1_b[:,1]**2)
 
 l1_fg1_xz = np.sqrt(l1_fg1**2-p1_f[:,1]**2)
-p1_g1,theta1_0g2g1 = crank_rocker(p1_f[:,[0,2]],p1_g2[[0,2]],l1_fg1_xz,l1_g1g2)
+p1_g1,theta1_0g2g1 = rrr(p1_f[:,[0,2]],p1_g2[[0,2]],l1_fg1_xz,l1_g1g2,-1)
 p1_g1 = np.insert(p1_g1,1,p1_g2[1],axis=1)
 p1_g4 = p_rl(np.array([48.11877609,0,-0.35674442]),l1_g3g4,np.pi+theta1_g2g3g4,1)
 p1_g4 = p_rp(p1_g2,p1_g4,theta1_0g2g1,axis=1)
 
-p1_h1,theta1_0h2h1 = crank_rocker(p1_g4[:,[0,2]],p1_h2[[0,2]],l1_g4h1,l1_h1h2)
+p1_h1,theta1_0h2h1 = rrr(p1_g4[:,[0,2]],p1_h2[[0,2]],l1_g4h1,l1_h1h2,-1)
 p1_h1 = np.insert(p1_h1,1,p1_g2[1],axis=1)
 theta1_0h2h3 = theta1_0h2h1+theta1_h1h2h3
 p1_h3 = p_rp(p1_h2,np.array([3.97,0,0])+p1_h2,theta1_0h2h3,axis=1)
