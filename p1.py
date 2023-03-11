@@ -43,6 +43,7 @@ def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
     return p3,theta043
 
 def rrp(p5,p2,theta054,theta543,l23,l34,clockwise=1): #曲柄滑块 2维 clockwise:234顺时针=1，234逆时针=-1
+    theta033_ = 0
     s = np.array([np.cos(theta054),np.sin(theta054)])
     d23 = np.cross(p2-p5,s)-l34*np.sin(theta543)
     theta023 = (theta054-np.pi*((clockwise+1)/2)-np.arcsin(d23/l23)*clockwise).reshape([-1,1])
