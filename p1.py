@@ -47,14 +47,32 @@ def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
     p3 = p_rl(p4,l34,theta043)
     return p3,theta043
 
-def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==theta033_:1,-1
-    s = np.array([np.cos(theta054),np.sin(theta054)])
-    d23 = np.cross(p2-p5,s)-l34*np.sin(theta543)
-    theta023 = (theta054-np.pi*((i+1)/2)-np.arcsin(d23/l23)*i).reshape([-1,1])
-    theta034 = theta054+theta543
-    p3 = p2+l23*np.hstack([np.cos(theta023),np.sin(theta023)])
-    p4 = p_rl(p3,l34,theta034)
+def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==theta033_:1
+    p6 = p_rl(p5,l34,theta054+theta543+np.pi)
+    theta026,l26 = theta_l(p6-p2)
+    theta263 = -theta026+np.pi+theta054
+    a1 = 1
+    a2 = -2*l26*np.cos(theta263)
+    a3 = l26**2-l23**2
+    a = np.concatenate((np.tile(np.array([a1]),a3.shape),a2,a3),axis=1)
+    l36 = np.array(list(map(lambda x:np.roots(x),a)))
+    if i==1:
+        l36 = np.max(l36,axis=1).reshape([-1,1])
+    else:
+        l36 = np.min(l36,axis=1).reshape([-1,1])
+    l36[~np.isreal(l36)]=np.nan
+    p3 = p_rl(p6,l36,theta054)
+    p4 = p_rl(p5,l36,theta054)
     return p3,p4
+
+# def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==theta033_:1
+#     s = np.array([np.cos(theta054),np.sin(theta054)])
+#     d23 = np.cross(p2-p5,s)-l34*np.sin(theta543)
+#     theta023 = (theta054-np.pi*((i+1)/2)-np.arcsin(d23/l23)*i).reshape([-1,1])
+#     theta034 = theta054+theta543
+#     p3 = p2+l23*np.hstack([np.cos(theta023),np.sin(theta023)])
+#     p4 = p_rl(p3,l34,theta034)
+#     return p3,p4
 
 # def rrp(p5,p2,theta543,theta054,theta033_,l23,l34): #曲柄滑块 2维
 #     p5 = p_rl(p5,l34,theta054+theta543+np.pi)
