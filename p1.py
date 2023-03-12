@@ -3,15 +3,17 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 
-def solve_theta(p): #求向量与横轴正方向夹角 2维
+def theta_l(p): #求向量与横轴正方向夹角 2维
     a = np.array([1,0])
     try:
+        i = (p[:,1]<0)*-2+1
         l = np.sqrt(np.sum((p)**2,axis=1))
-        theta = np.arccos(np.dot(p,a)/l)*(p[:,1])/abs(p[:,1])
+        theta = np.arccos(np.dot(p,a)/l)*i
     except:
+        i = (p[1]<0)*-2+1
         l = np.sqrt(sum((p)**2))
-        theta = np.arccos(np.dot(p,a)/l)*(p[1])/abs(p[1])
-    return theta
+        theta = np.arccos(np.dot(p,a)/l)*i
+    return theta.reshape([-1,1]),l.reshape([-1,1])
 
 def p_rl(p0,l,theta,*args): #2维;3维坐标以args[0]轴方向为旋转中心,arg[0]:x=0,y=1,z=2
     p1 = np.hstack([np.cos(theta),np.sin(theta)])
@@ -35,8 +37,11 @@ def p_rp(p0,p1,theta,axis=1): #3维坐标绕过p0点且垂直于坐标轴的直�
     return p2
 
 def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
-    l24 = np.sqrt(np.sum((p2-p4)**2,axis=1))
-    theta042 = solve_theta(p2-p4)
+    try:
+        l23 = l23.reshape([-1,1])
+    except:
+        pass
+    theta042,l24 = theta_l(p2-p4)
     theta243 = np.arccos((l34**2+l24**2-l23**2)/2/l34/l24)*i
     theta043 = (theta042+theta243).reshape([-1,1])
     p3 = p_rl(p4,l34,theta043)
@@ -61,17 +66,21 @@ def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==the
 #     p4 = p_rl(p3,l34,theta034)
 #     return p3,p4
 
-def rpr(p2,p4,l23,theta432): #曲柄滑块 2维
-    #l12>l23+l14时只有唯一解，反之有两个解且其中一种情况中3，4点出现重合，即theta432会变为theta432+pi
-    l24 = np.sqrt(np.sum((p2-p4)**2,axis=1))
-    theta024 = solve_theta(p4-p2)
-    theta243 = np.arcsin(l23*np.sin(theta432)/l24)
-    theta423 = np.pi+theta243+theta432
-    theta023 = (theta024+theta423).reshape([-1,1])
-    theta043 = (theta024+np.pi+theta243).reshape([-1,1])
-    p3 = p_rl(p2,l23,theta023)
-    return p3,theta043
-
+def rpr(p2,p4,l23,theta432):
+    if l23>0:
+        theta024,l24 = theta_l(p4-p2)
+        a1 = 1
+        a2 = -2*l23*np.cos(theta432)
+        a3 = l23**2-l24**2
+        a = np.concatenate((np.tile(np.array([a1]),a3.shape),
+                            np.tile(np.array([a2]),a3.shape),
+                            a3),axis=1)
+        l34 = np.array(list(map(lambda x:np.roots(x),a)))
+        l34 = np.max(l34,axis=1).reshape([-1,1])
+        theta243 = np.arccos((l34**2+l24**2-l23**2)/2/l34/l24)*np.sign(theta432)
+        theta043 = (theta024+np.pi+theta243).reshape([-1,1])
+        p3 = p_rl(p4,l34,theta043)
+        return p3,theta043
 
 du = 180/np.pi
 hd = np.pi/180
