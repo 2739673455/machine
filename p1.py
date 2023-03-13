@@ -47,7 +47,7 @@ def rrr(p2,p4,l23,l34,i=1): #曲柄摇杆 2维  i:theta243正,负=1,-1
     p3 = p_rl(p4,l34,theta043)
     return p3,theta043
 
-def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==theta033_:1
+def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:234顺时针=1
     p6 = p_rl(p5,l34,theta054+theta543+np.pi)
     theta026,l26 = theta_l(p6-p2)
     theta263 = -theta026+np.pi+theta054
@@ -85,7 +85,7 @@ def rrp(p5,p2,theta054,theta543,l23,l34,i=1): #曲柄滑块 2维 i:theta053==the
 #     return p3,p4
 
 def rpr(p2,p4,l23,theta432):
-    if l23>0:
+    if l23!=0:
         theta024,l24 = theta_l(p4-p2)
         a1 = 1
         a2 = -2*l23*np.cos(theta432)
