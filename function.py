@@ -79,3 +79,57 @@ def rpr(p2,p4,l23,theta432,i=1): #l12<l14+l23有多解
     theta043 = (theta024+np.pi+theta243).reshape([-1,1])
     p3 = p_rl(p4,l34,theta043)
     return p3,theta043
+
+du = 180/np.pi
+hd = np.pi/180
+
+pm = np.array([67.38779579,-14.50871791])
+pn = np.array([203.46200448,-7.56520072])
+pl = np.array([48.45361005,120.54683341])
+lmq = 97.26542294
+lqp = 3.57
+lps = 113.61007878
+lsl = 125.4
+thetanpq = 90*hd
+
+l0 = 113.50900801
+
+x = np.linspace(0,np.pi/9,21).reshape(-1,1)
+def func1(x):
+    pq = p_rl(pm,lmq,x)
+    pp,thetanp = rpr(pq,pn,lqp,thetanpq)
+    ps,thetals = rrr(pp,pl,lps,lsl,-1)
+    thetaqs,lqs = theta_l(ps-pq)
+    return lqs
+y = func1(x)
+#0
+index0 = np.argwhere(np.abs(y-l0)==np.min(np.abs(y-l0)))[0,0]
+x0 = x[index0]
+y0 = y[index0]
+sign_d0 = np.sign(l0-y0)
+sign_dy = np.sign(np.diff(y,axis=0)[index0])
+index1 = index0+int(sign_d0*sign_dy)*1
+x1 = x[index1]
+y1 = y[index1]
+x = np.hstack([x0,x1])
+y = np.hstack([y0,y1])
+print(x*du,y)
+def approximation(x,y,l0):
+    k = np.diff(y)/np.diff(x)
+    x2 = (l0-y[0])/k+x[0]
+    y2 = func1(x2)
+    sign_d0 = np.sign(l0-y2)
+    sign_dy = np.sign(np.diff(y))
+    if abs(l0-y2)<1e-10:
+        return x2,y2
+    elif sign_d0*sign_dy>0:
+        x[0] = x2
+        y[0] = y2 
+    else:
+        x[1] = x2
+        y[1] = y2
+    print(x*du,y)
+    x2,y2 = approximation(x,y,l0)
+    return x2,y2
+x2,y2 = approximation(x,y,l0)
+print(x2*du)
