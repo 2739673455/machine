@@ -93,6 +93,8 @@ class Machine:
         self.l4_jk = 7
         self.l4_kk2 = 7
         self.l4_ab1 = 1  # 主轴抬牙偏心
+        self.l4_hb1_y = 1  # 送布牙架铰接点高度
+        self.l4_h2b1_y = 10.5  # 差动牙架铰接点高度
         self.theta4_14 = -90 * self.hd  # 上轴与主轴抬牙偏心夹角
         self.theta4_0d2d3 = -13.03643004 * self.hd  # 针距
         self.theta4_d3d2d1 = 19.29045148 * self.hd
@@ -213,8 +215,8 @@ class Machine:
         self.theta4_kb1k2 = -np.arcsin(self.l4_kk2 / self.l4_b1k)
         self.theta4_0b1k2 = self.theta4_0b1k + self.theta4_kb1k2
 
-        self.p4_h, _ = rrp(self.p4_g[:, 1:3], self.p4_b1[:, 1:3], self.l4_gh, 1, self.theta4_0b1k2, 90 * self.hd, -1)
-        self.p4_h2, _ = rrp(self.p4_s[:, 1:3], self.p4_b1[:, 1:3], self.l4_sh2, 10.5, self.theta4_0b1k2, -90 * self.hd, -1)
+        self.p4_h, _ = rrp(self.p4_g[:, 1:3], self.p4_b1[:, 1:3], self.l4_gh, self.l4_hb1_y, self.theta4_0b1k2, 90 * self.hd, -1)
+        self.p4_h2, _ = rrp(self.p4_s[:, 1:3], self.p4_b1[:, 1:3], self.l4_sh2, self.l4_h2b1_y, self.theta4_0b1k2, -90 * self.hd, -1)
         self.p4_h = np.insert(self.p4_h, 0, 0, axis=1)
         self.p4_h2 = np.insert(self.p4_h2, 0, 0, axis=1)
 
@@ -279,7 +281,7 @@ class Cam:  # 凸轮
             [3.51379771, 2.54177587, 27.51091453, 1],
             [105.03265005, 37.47574683, 134.87226561, 1],
             [-0.85372899, -7.74952254, 19.73213248, 1],
-            [2.02724392, 1.03948428, 28.98127546, 1]])  # 圆弧圆心，圆弧半径，法向
+            [2.02724392, 1.03948428, 28.98127546, 1]])  # 圆弧圆心，圆弧半径，法向,最后一位是0为直线
 
     def SolveTangencyPoint(self):  # 求圆弧切点坐标
         cam_len = len(self.cam_info)
@@ -288,7 +290,16 @@ class Cam:  # 凸轮
         index2 = np.arange(0, cam_len)
         rate = (self.cam_info[index1, 2] * self.cam_info[index1, 3] /
                 (self.cam_info[index1, 2] * self.cam_info[index1, 3] - self.cam_info[index2, 2] * self.cam_info[index2, 3])).reshape(-1, 1)
-        self.tangency_points = (self.cam_info[index2, 0:2] - self.cam_info[index1, 0:2]) * rate + self.cam_info[index1, 0:2]
+        tangency_points = (self.cam_info[index2, 0:2] - self.cam_info[index1, 0:2]) * rate + self.cam_info[index1, 0:2]
+
+        if 0 in self.cam_info[:, 3]:  # cam_info最后一位是0为直线
+            straight_index = np.arange(cam_len)[self.cam_info[:, 3] == 0]
+            straight_index_previous = straight_index - 1
+            straight_index_next = straight_index + 1
+            tangency_points[straight_index] = self.cam_info[straight_index][:, 0:2] * self.cam_info[straight_index_previous][:, 2:3] + self.cam_info[straight_index_previous][:, 0:2]
+            tangency_points[straight_index_next] = self.cam_info[straight_index][:, 0:2] * self.cam_info[straight_index_next][:, 2:3] + self.cam_info[straight_index_next][:, 0:2]
+
+        self.tangency_points = tangency_points
 
     def SolveAngleRange(self):  # 求圆弧角度范围
         self.SolveTangencyPoint()
@@ -307,17 +318,20 @@ class Cam:  # 凸轮
         angle_range_round = np.ceil(self.angle_range)  # 起始角度取整
         cam_p = np.array([[0, 0]])
         for i, val in enumerate(angle_range_round):
-            if val[0] > val[1]:
-                cam_theta = np.hstack([np.arange(val[0], 360), np.arange(0, val[1])]) * self.hd
+            if self.cam_info[i, 3] == 0:  # 直线部分直接添加交点
+                cam_p = np.vstack([cam_p, self.tangency_points[i]])
             else:
-                cam_theta = np.arange(val[0], val[1]) * self.hd
-            alpha = cam_theta - c_theta[i]
-            beta = np.zeros(alpha.shape)
-            beta[alpha != 0] = np.arcsin(l0[i] / self.arc_r[i] * np.sin(alpha[alpha != 0]))
-            gamma = cam_theta + beta if self.arc_t[i] == 1 else cam_theta + np.pi - beta
-            gamma = gamma.reshape(-1, 1)
-            cam_p_current = self.arc_c[i] + self.arc_r[i] * np.hstack([np.cos(gamma), np.sin(gamma)])
-            cam_p = np.vstack([cam_p, cam_p_current])
+                if val[0] > val[1]:
+                    cam_theta = np.hstack([np.arange(val[0], 360), np.arange(0, val[1])]) * self.hd
+                else:
+                    cam_theta = np.arange(val[0], val[1]) * self.hd
+                alpha = cam_theta - c_theta[i]
+                beta = np.zeros(alpha.shape)
+                beta[alpha != 0] = np.arcsin(l0[i] / self.arc_r[i] * np.sin(alpha[alpha != 0]))
+                gamma = cam_theta + beta if self.arc_t[i] == 1 else cam_theta + np.pi - beta
+                gamma = gamma.reshape(-1, 1)
+                cam_p_current = self.arc_c[i] + self.arc_r[i] * np.hstack([np.cos(gamma), np.sin(gamma)])
+                cam_p = np.vstack([cam_p, cam_p_current])
         self.p = cam_p[1:]
 
     def Rotate(self, theta, *args):

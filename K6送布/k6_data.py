@@ -62,8 +62,8 @@ class JackV1(Machine):  # 转换曲柄上移
         self.theta4_kb1k2 = -np.arcsin(self.l4_kk2 / self.l4_b1k)
         self.theta4_0b1k2 = self.theta4_0b1k + self.theta4_kb1k2
 
-        self.p4_h, _ = rrp(self.p4_g[:, 1:3], self.p4_b1[:, 1:3], self.l4_gh, 1, self.theta4_0b1k2, 90 * self.hd, -1)
-        self.p4_h2, _ = rrp(self.p4_s[:, 1:3], self.p4_b1[:, 1:3], self.l4_sh2, 10.5, self.theta4_0b1k2, -90 * self.hd, -1)
+        self.p4_h, _ = rrp(self.p4_g[:, 1:3], self.p4_b1[:, 1:3], self.l4_gh, self.l4_hb1_y, self.theta4_0b1k2, 90 * self.hd, -1)
+        self.p4_h2, _ = rrp(self.p4_s[:, 1:3], self.p4_b1[:, 1:3], self.l4_sh2, self.l4_h2b1_y, self.theta4_0b1k2, -90 * self.hd, -1)
         self.p4_h = np.insert(self.p4_h, 0, 0, axis=1)
         self.p4_h2 = np.insert(self.p4_h2, 0, 0, axis=1)
 

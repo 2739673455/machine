@@ -3,11 +3,12 @@ sys.path.append('./..')
 import shapely
 import numpy as np
 import matplotlib.pyplot as plt
-from data import *
+from data import Cam_a
 from function import *
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 from shapely.geometry import Point, LineString, Polygon
+np.set_printoptions(linewidth=200)
 
 du = 180 / np.pi
 hd = np.pi / 180
@@ -85,13 +86,29 @@ class Rope():
         normal = np.insert(vector_x / dist_to_c * arc_t, 0, 0, axis=1)
         self.CollisionConstraint(collision_index, penetration_depth, normal)
 
-    def Collision1(self, bound, cam_index):  # 凸轮碰撞
+    def StraightCollision(self, collision_index, normal, arc_r):  # 与平面碰撞
+        distance = np.sum(self.x[collision_index, 1:3] * normal, axis=-1).reshape(-1, 1)
+        penetration_depth = arc_r - distance
+        normal = np.insert(normal, 0, 0, axis=1)
+        self.CollisionConstraint(collision_index, penetration_depth, normal)
+
+    def ParticleInCamIndex(self, particle_positions, cam_tangency_points):  # 求点在凸轮内位置所对应的圆弧的索引
+        theta = includedAngle(np.array([1, 0]), particle_positions).reshape(-1, 1)
+        cam_angle_range = includedAngle(np.array([1, 0]), cam_tangency_points)
+        theta_index = (theta > cam_angle_range)
+        theta_below = theta_index * cam_angle_range
+        nobelow_index = np.sum(theta_index, axis=-1) == 0
+        theta_below[nobelow_index] = cam_angle_range
+        theta_index = np.argwhere(theta_below == np.max(theta_below, axis=-1).reshape(-1, 1))[:, 1]
+        return theta_index
+
+    def Collision1(self, cam, cam_index):  # 凸轮碰撞
         # 检测节点是否发生碰撞
         cam_front_face = 1.2
         cam_back_face = -1.2
         in1 = (self.x[:, 0] > cam_back_face) * (self.x[:, 0] < cam_front_face)
         lines_points = [Point(i) for i in self.x[in1][:, [1, 2]]]
-        bound_polygon = Polygon(bound)
+        bound_polygon = Polygon(cam.p[cam_index])
         in1[in1] = shapely.intersects(lines_points, bound_polygon)
         if np.sum(in1) > 0:
             # 侧面碰撞
@@ -104,40 +121,49 @@ class Rope():
 
             # 圆弧面碰撞
             # 检测与节点碰撞的圆弧的序号,取出相应圆弧的圆心、半径、法向
-            theta = includedAngle(bound[0], self.x[in1, 1:3]) * du + 270
-            theta[theta > 360] -= 360
-            theta = theta.reshape(-1, 1)
-            theta_index = ((theta - cam1.angle_range[:, 0]) > 0) & ((theta - cam1.angle_range[:, 1]) < 0)
-            index_3 = np.sum(theta_index, axis=1) == 0
-            theta_index = np.sum(cam_angle_index * theta_index, axis=1)
-            theta_index[index_3] = 3
-            self.ArcCollision(in1, cam1.arc_c[cam_index, theta_index], cam1.arc_r[theta_index], cam1.arc_t[theta_index])
+            theta_index = self.ParticleInCamIndex(self.x[in1, 1:3], cam.tangency_points[cam_index])
+            straight_index = cam.cam_info[theta_index, 3] == 0
+            arc_in1 = np.copy(in1)
+            straight_in1 = np.copy(in1)
+            arc_in1[arc_in1] = ~straight_index
+            straight_in1[straight_in1] = straight_index
+            if np.sum(arc_in1) > 0:
+                self.ArcCollision(arc_in1,
+                                  cam.arc_c[cam_index, theta_index[~straight_index]],
+                                  cam.arc_r[theta_index[~straight_index]],
+                                  cam.arc_t[theta_index[~straight_index]])
+            if np.sum(straight_in1) > 0:
+                self.StraightCollision(straight_in1,
+                                       cam.arc_c[cam_index, theta_index[straight_index]],
+                                       cam.arc_r[theta_index[straight_index]])
 
 
-rope_node_num = 40
-rope1_start_point = np.array([14.5, 23.85, 9.6])
-rope1_end_point = np.array([-2.5, 23.85, 9.6])
+rope_node_num = 20
+rope1_start_point = np.array([2.3, -1.32867834, 17.8])
+rope1_end_point = np.array([-2.3, -1.32867834, 17.8])
 rope1 = np.vstack([np.linspace(rope1_start_point[0], rope1_end_point[0], rope_node_num),
                    np.linspace(rope1_start_point[1], rope1_end_point[1], rope_node_num),
                    np.linspace(rope1_start_point[2], rope1_end_point[2], rope_node_num)]).T
 rope1 = Rope(rope1, spring_k=2e3, damping_k=5, m=1, fixed=[0, -1], t=2e-2)
 
-cam1 = Cam()
+cam1 = Cam_a()
 cam1.SetCamOutline()
-cam1.Rotate(90 * hd)
+# cam1.Rotate(90 * hd)
 cam1.Rotate(np.arange(360) * hd)
-cam_angle_index = np.arange(12)
 
 length1 = np.zeros(360)
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 2, 1, projection="3d")
 ax2 = fig.add_subplot(1, 2, 2)
 ax1.set_xlim(-10, 10)
-ax1.set_ylim(-10, 40)
-ax1.set_zlim(-10, 20)
-ax1.set_box_aspect([20, 50, 30])
+ax1.set_ylim(-30, 30)
+ax1.set_zlim(-30, 30)
+ax1.set_box_aspect([20, 60, 60])
 ax2.set_xlim(0, 360)
-ax2.set_ylim(0, 70)
+ax2.set_ylim(0, 30)
+ax2.set_xticks(np.arange(0, 360, 20))
+ax2.set_yticks(np.arange(0, 30, 1))
+ax2.grid()
 
 plot_dict = dict()
 
@@ -150,14 +176,14 @@ def update(i):
         pass
     for _ in range(3):
         rope1.Forward()
-        rope1.Collision1(cam1.p[i], i)
+        rope1.Collision1(cam1, i)
 
     length1[i] = stringLength(rope1.x)
 
     # plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
     plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
-    plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 360), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
-    plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 360), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+    plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+    plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
     plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
 
 

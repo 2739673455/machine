@@ -58,8 +58,8 @@ class Cam_a(Cam):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     rod1 = ThreadPickRod()
     rod1.Solve()
     cam1 = Cam_a()
-    cam1.SolveTangencyPoint()
-    print(cam1.tangency_points)
+    cam1.SetCamOutline()
