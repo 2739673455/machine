@@ -5,9 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data import Cam_a
 from function import *
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
-from shapely.geometry import Point, LineString, Polygon
+from shapely.geometry import Point, Polygon
 np.set_printoptions(linewidth=200)
 
 du = 180 / np.pi
@@ -148,7 +147,7 @@ rope1 = Rope(rope1, spring_k=2e3, damping_k=5, m=1, fixed=[0, -1], t=2e-2)
 
 cam1 = Cam_a()
 cam1.SetCamOutline()
-# cam1.Rotate(90 * hd)
+cam1.Rotate((72.26917803 - 26.21477644) * hd)
 cam1.Rotate(np.arange(360) * hd)
 
 length1 = np.zeros(360)
@@ -160,9 +159,9 @@ ax1.set_ylim(-30, 30)
 ax1.set_zlim(-30, 30)
 ax1.set_box_aspect([20, 60, 60])
 ax2.set_xlim(0, 360)
-ax2.set_ylim(0, 30)
+ax2.set_ylim(0, 25)
 ax2.set_xticks(np.arange(0, 360, 20))
-ax2.set_yticks(np.arange(0, 30, 1))
+ax2.set_yticks(np.arange(0, 25, 1))
 ax2.grid()
 
 plot_dict = dict()

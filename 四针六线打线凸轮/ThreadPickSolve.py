@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data import *
 from function import *
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
 rod1 = ThreadPickRod()
+rod1.n = rod1.n - 26.21477644 * rod1.hd
 rod1.Solve()
 rope_node1 = np.array([14.5, 23.85, 9.6])
 rope_node4 = np.array([-2.5, 23.85, 9.6])

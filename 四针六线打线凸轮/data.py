@@ -20,8 +20,6 @@ class ThreadPickRod():
         self.below_side1 = np.array([[0, 0, -4], [0, 23.83254199, -4], [3.5, 31.33831622, -4]])
         self.below_side2 = np.array([[1.5, 0, -4], [1.5, 23.5, -4], [5, 31.00577422, -4]])
 
-        self.n = self.n - 26.21477644 * self.hd
-
     def Solve(self):
         self.SolveTheta()
         self.SolveBelowSide()
