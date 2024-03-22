@@ -147,47 +147,62 @@ rope1 = Rope(rope1, spring_k=2e3, damping_k=5, m=1, fixed=[0, -1], t=2e-2)
 
 cam1 = Cam_a()
 cam1.SetCamOutline()
-cam1.Rotate((72.26917803 - 26.21477644) * hd)
+# cam1.Rotate((72.26917803 - 26.21477644) * hd)
 cam1.Rotate(np.arange(360) * hd)
 
 length1 = np.zeros(360)
-fig = plt.figure()
-ax1 = fig.add_subplot(1, 2, 1, projection="3d")
-ax2 = fig.add_subplot(1, 2, 2)
-ax1.set_xlim(-10, 10)
-ax1.set_ylim(-30, 30)
-ax1.set_zlim(-30, 30)
-ax1.set_box_aspect([20, 60, 60])
-ax2.set_xlim(0, 360)
-ax2.set_ylim(0, 25)
-ax2.set_xticks(np.arange(0, 360, 20))
-ax2.set_yticks(np.arange(0, 25, 1))
-ax2.grid()
 
-plot_dict = dict()
+# fig = plt.figure()
+# ax1 = fig.add_subplot(1, 2, 1, projection="3d")
+# ax2 = fig.add_subplot(1, 2, 2)
+# ax1.set_xlim(-10, 10)
+# ax1.set_ylim(-30, 30)
+# ax1.set_zlim(-30, 30)
+# ax1.set_box_aspect([20, 60, 60])
+# ax2.set_xlim(0, 360)
+# ax2.set_ylim(0, 25)
+# ax2.set_xticks(np.arange(0, 360, 20))
+# ax2.set_yticks(np.arange(0, 25, 1))
+# ax2.grid()
 
-
-def update(i):
-    global plot_dict
-    try:
-        [plot_dict[i].remove() for i in plot_dict]
-    except:
-        pass
-    for _ in range(3):
-        rope1.Forward()
-        rope1.Collision1(cam1, i)
-
-    length1[i] = stringLength(rope1.x)
-
-    # plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
-    plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
-    plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
-    plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
-    plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
+# plot_dict = dict()
 
 
-# ax.view_init(elev=0, azim=0)
-ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=True)
+# def update(i):
+#     global plot_dict
+#     try:
+#         [plot_dict[i].remove() for i in plot_dict]
+#     except:
+#         pass
+#     for _ in range(3):
+#         rope1.Forward()
+#         rope1.Collision1(cam1, i)
+
+#     length1[i] = stringLength(rope1.x)
+
+# plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
+# plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
+# plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+# plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+# plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
+
+
+# ax1.view_init(elev=20, azim=20)
+# ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=True)
 # ani.save("animation_cam.gif", fps=25, writer="pillow")
+# plt.show()
 
-plt.show()
+
+def outputLineLength(length1):
+    for i in range(360):
+        for _ in range(3):
+            rope1.Forward()
+            rope1.Collision1(cam1, i)
+        length1[i] = stringLength(rope1.x)
+    with open("ThreadCamLineLength.dat", "w") as f:
+        for data in length1:
+            f.write(str(data))
+            f.write("\n")
+
+
+outputLineLength(length1)
