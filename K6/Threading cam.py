@@ -1,16 +1,16 @@
-import os
 import sys
-sys.path.append(os.path.join(os.path.abspath(__file__), '../..'))
+sys.path.append(sys.path[0] + '\..')
 import shapely
 import numpy as np
 import matplotlib.pyplot as plt
-from k6_data import *
+from machine import *
 from function import *
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 from shapely.geometry import Point, LineString, Polygon
 
-k6_data(p, l, theta)
+du = 180 / np.pi
+hd = np.pi / 180
 
 
 class Rope():
@@ -69,9 +69,9 @@ class Rope():
                 vector_x[:, [1, 2]] + self.x0[side_collision_index, 1:3]
             # 在插值点是否与面碰撞
             interpolate_x_points = [Point(i) for i in interpolate_x]
-            if collision_state == 'in':  # 在轮廓内产生碰撞
+            if collision_state == 'in':  # 在轮廓内为碰撞
                 side_collision_index[side_collision_index] = shapely.intersects(interpolate_x_points, bound_polygon)
-            elif collision_state == 'out':  # 在轮廓外产生碰撞
+            elif collision_state == 'out':  # 在轮廓外为碰撞
                 side_collision_index[side_collision_index] = ~shapely.intersects(interpolate_x_points, bound_polygon)
             # 穿透深度
             penetration_depth = np.abs(side - self.x[side_collision_index])
@@ -85,7 +85,7 @@ class Rope():
         normal = np.insert(vector_x / dist_to_c * arc_t, 0, 0, axis=1)
         self.CollisionConstraint(collision_index, penetration_depth, normal)
 
-    def Collision1(self, bound):  # 凸轮碰撞
+    def Collision1(self, bound, cam_index):  # 凸轮碰撞
         # 检测节点是否发生碰撞
         cam1_front_face = 2
         cam1_back_face = 1
@@ -112,14 +112,11 @@ class Rope():
             theta = includedAngle(bound[0], self.x[in1, 1:3]) * du + 270
             theta[theta > 360] -= 360
             theta = theta.reshape(-1, 1)
-            theta_index = ((theta - cam_theta0[:, 0]) > 0) & ((theta - cam_theta0[:, 1]) < 0)
+            theta_index = ((theta - cam1.angle_range[:, 0]) > 0) & ((theta - cam1.angle_range[:, 1]) < 0)
             index_3 = np.sum(theta_index, axis=1) == 0
-            theta_index = np.sum(cam_theta0_index * theta_index, axis=1)
+            theta_index = np.sum(cam_angle_index * theta_index, axis=1)
             theta_index[index_3] = 3
-            cam_c = np.vstack(p['cam_info'].loc[theta_index, 'c'])
-            cam_r = np.vstack(p['cam_info'].loc[theta_index, 'r'])
-            cam_t = np.vstack(p['cam_info'].loc[theta_index, 't'])
-            self.ArcCollision(in1, cam_c, cam_r, cam_t)
+            self.ArcCollision(in1, cam1.arc_c[cam_index, theta_index], cam1.arc_r[theta_index], cam1.arc_t[theta_index])
 
     def Collision2(self, bound):  # 中间过线槽碰撞
         in1 = (self.x[:, 0] > -0.5) * (self.x[:, 0] < 0.5)
@@ -133,21 +130,21 @@ class Rope():
             self.SideCollision(-0.5, in1, bound_polygon, np.array([-1, 0, 0]), 'out')
             # 与右圆弧碰撞
             right_arc_collision_index = np.copy(in1)
-            collision_index = ((self.x[in1, 1:3] - p['5_trough'][0, 1:3]) @ vector_right) > 0
+            collision_index = ((self.x[in1, 1:3] - trough1.p[0, 1:3]) @ vector_right) > 0
             right_arc_collision_index[in1] = collision_index
             if np.sum(right_arc_collision_index) > 0:
-                self.ArcCollision(right_arc_collision_index, p['5_trough_center'][0], 1.5, -1)
+                self.ArcCollision(right_arc_collision_index, trough1.arc_c[0], 1.5, -1)
                 in1[right_arc_collision_index] = False
             # 与左圆弧碰撞
             left_arc_collision_index = np.copy(in1)
-            collision_index = ((self.x[in1, 1:3] - p['5_trough'][19, 1:3]) @ vector_left) > 0
+            collision_index = ((self.x[in1, 1:3] - trough1.p[19, 1:3]) @ vector_left) > 0
             left_arc_collision_index[in1] = collision_index
             if np.sum(left_arc_collision_index) > 0:
-                self.ArcCollision(left_arc_collision_index, p['5_trough_center'][1], 1.5, -1)
+                self.ArcCollision(left_arc_collision_index, trough1.arc_c[1], 1.5, -1)
                 in1[left_arc_collision_index] = False
             # 与上边线碰撞
             above_sideline_collision_index = np.copy(in1)
-            collision_index = ((self.x[in1, 1:3] - p['5_trough'][9, 1:3]) @ vector_above) > 0
+            collision_index = ((self.x[in1, 1:3] - trough1.p[9, 1:3]) @ vector_above) > 0
             above_sideline_collision_index[in1] = collision_index
             if np.sum(above_sideline_collision_index) > 0:
                 penetration_depth = -np.dot((self.x[above_sideline_collision_index, 1:3] - bound[9]), normal_above).reshape(-1, 1)
@@ -156,7 +153,7 @@ class Rope():
                 in1[above_sideline_collision_index] = False
             # 与下边线碰撞
             below_sideline_collision_index = np.copy(in1)
-            collision_index = ((self.x[in1, 1:3] - p['5_trough'][0, 1:3]) @ vector_below) > 0
+            collision_index = ((self.x[in1, 1:3] - trough1.p[0, 1:3]) @ vector_below) > 0
             below_sideline_collision_index[in1] = collision_index
             if np.sum(below_sideline_collision_index) > 0:
                 penetration_depth = -np.dot((self.x[below_sideline_collision_index, 1:3] - bound[19]), normal_below).reshape(-1, 1)
@@ -164,18 +161,6 @@ class Rope():
                 self.CollisionConstraint(below_sideline_collision_index, penetration_depth, normal)
                 in1[below_sideline_collision_index] = False
 
-
-trough_turn_angle = -37.00607503 * hd
-translation_vector = np.array([5.7223540, 16.73727539])
-p['5_trough'] = p_rp(p['5_trough'], trough_turn_angle)[0] + translation_vector
-p['5_trough_center'] = p_rp(p['5_trough_center'], trough_turn_angle)[0] + translation_vector
-vector_right = p['5_trough'][0] - p['5_trough'][19]
-vector_left = p['5_trough'][19] - p['5_trough'][0]
-vector_above = p['5_trough'][9] - p['5_trough'][0]
-normal_above = -vector_above / np.sqrt(np.sum(vector_above**2))
-vector_below = p['5_trough'][0] - p['5_trough'][9]
-normal_below = -normal_above
-p['5_trough'] = np.insert(p['5_trough'], 0, 0, axis=1)
 
 rope_node_num = 40
 rope1_start_point = np.array([-6, 15.16445824, 9])
@@ -185,11 +170,26 @@ rope1 = np.vstack([np.linspace(rope1_start_point[0], rope1_end_point[0], rope_no
                    np.linspace(rope1_start_point[2], rope1_end_point[2], rope_node_num)]).T
 rope1 = Rope(rope1, spring_k=6e2, damping_k=5, m=1, fixed=[0, -1], t=2e-2)
 
-cam_theta0 = np.vstack(p['cam_info']['theta0'])
-cam_theta0_index = np.arange(12)
-p['cam'] = np.insert(p['cam'], 0, 0, axis=1)
-p['cam'] = p_rp(p['cam'], 90 * hd, 0)[0]
-p['cam_info']['c'] = p_rp(np.vstack(p['cam_info']['c']), 90 * hd)[0].tolist()
+cam1 = Cam()
+cam1.SetCamOutline()
+cam1.Rotate(90 * hd)
+cam1.Rotate(np.arange(360) * hd)
+cam_angle_index = np.arange(12)
+
+turn_angle = -37.00607503 * hd
+translation_vector = np.array([5.7223540, 16.73727539])
+trough1 = Trough()
+trough1.SetTroughOutline()
+trough1.Rotate(turn_angle)
+trough1.p += translation_vector
+trough1.arc_c += translation_vector
+vector_right = trough1.p[0] - trough1.p[19]
+vector_left = trough1.p[19] - trough1.p[0]
+vector_above = trough1.p[9] - trough1.p[0]
+normal_above = -vector_above / np.sqrt(np.sum(vector_above**2))
+vector_below = trough1.p[0] - trough1.p[9]
+normal_below = -normal_above
+trough1.p = np.insert(trough1.p, 0, 0, axis=1)
 
 length1 = np.zeros(360)
 fig = plt.figure()
@@ -211,30 +211,28 @@ def update(i):
         [plot_dict[i].remove() for i in plot_dict]
     except:
         pass
-    p['cam'] = p_rp(p['cam'], 1 * hd, 0)[0]
-    p['cam_info']['c'] = p_rp(np.vstack(p['cam_info']['c']), 1 * hd)[0].tolist()
     for _ in range(3):
         rope1.Forward()
-        rope1.Collision1(bound=p['cam'][:, [1, 2]])
-        rope1.Collision2(bound=p['5_trough'][:, [1, 2]])
+        rope1.Collision1(cam1.p[i], i)
+        rope1.Collision2(bound=trough1.p[:, [1, 2]])
 
     length1[i] = stringLength(rope1.x)
 
     # plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
     plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
-    plot_dict['trough1'], = ax1.plot3D(np.hstack([p['5_trough'][:, 0], p['5_trough'][0, 0]]) - 0.5,
-                                       np.hstack([p['5_trough'][:, 1], p['5_trough'][0, 1]]),
-                                       np.hstack([p['5_trough'][:, 2], p['5_trough'][0, 2]]), 'c')
-    plot_dict['trough2'], = ax1.plot3D(np.hstack([p['5_trough'][:, 0], p['5_trough'][0, 0]]) + 0.5,
-                                       np.hstack([p['5_trough'][:, 1], p['5_trough'][0, 1]]),
-                                       np.hstack([p['5_trough'][:, 2], p['5_trough'][0, 2]]), 'c')
-    plot_dict['cam1'], = ax1.plot3D(p['cam'][:, 0] + 2, p['cam'][:, 1], p['cam'][:, 2], 'r')
-    plot_dict['cam2'], = ax1.plot3D(p['cam'][:, 0] - 2, p['cam'][:, 1], p['cam'][:, 2], 'r')
+    plot_dict['trough1'], = ax1.plot3D(np.hstack([trough1.p[:, 0], trough1.p[0, 0]]) - 0.5,
+                                       np.hstack([trough1.p[:, 1], trough1.p[0, 1]]),
+                                       np.hstack([trough1.p[:, 2], trough1.p[0, 2]]), 'c')
+    plot_dict['trough2'], = ax1.plot3D(np.hstack([trough1.p[:, 0], trough1.p[0, 0]]) + 0.5,
+                                       np.hstack([trough1.p[:, 1], trough1.p[0, 1]]),
+                                       np.hstack([trough1.p[:, 2], trough1.p[0, 2]]), 'c')
+    plot_dict['cam1'], = ax1.plot3D(np.tile(2, 360), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+    plot_dict['cam2'], = ax1.plot3D(np.tile(-2, 360), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
     plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
 
 
 # ax.view_init(elev=0, azim=0)
-ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=False)
+ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=True)
 # ani.save("animation_cam.gif", fps=25, writer="pillow")
 
 plt.show()

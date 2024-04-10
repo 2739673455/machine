@@ -1,5 +1,5 @@
 import sys
-sys.path.append("./..")
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 import matplotlib.pyplot as plt
 from function import *
@@ -53,22 +53,22 @@ def InvLooperSolve(machine, p3_k_x, i):  # 弯针尖水平位置->上主轴角�
 
 
 def Plot1(angle2, distance_source, distance_source1, distance_v1, distance_v11):
-    def update(i):
-        ax1.cla()
-        ax1.set_xlim(-8, 8)
-        ax1.set_ylim(-200, -180)
-        ax1.plot([k6.p5_e2[i, 1], k6.p5_f2[i, 1]], [k6.p5_e2[i, 2], k6.p5_f2[i, 2]], 'r')
-        ax1.plot([-0.4, -0.4], [-200, -180], 'k')
-        ax1.text(0, -190, "{:.4f}".format(distance_source1[i]))
-        ax1.text(0, -189, i)
+    # def update(i):
+    #     ax1.cla()
+    #     ax1.set_xlim(-8, 8)
+    #     ax1.set_ylim(-200, -180)
+    #     ax1.plot([k6.p5_e2[i, 1], k6.p5_f2[i, 1]], [k6.p5_e2[i, 2], k6.p5_f2[i, 2]], 'r')
+    #     ax1.plot([-0.4, -0.4], [-200, -180], 'k')
+    #     ax1.text(0, -190, "{:.4f}".format(distance_source1[i]))
+    #     ax1.text(0, -189, i)
 
-        ax2.cla()
-        ax2.plot(distance_source1, 'b')
-        ax2.plot(i, distance_source1[i], 'o', c='k')
-        ax2.plot(angle2[0] * du, distance_source[0], '.r')
-        ax2.plot(angle2[1] * du, distance_source[1], '.r')
-        ax2.text(angle2[0] * du - 120, distance_source[0], distance_source[0].astype(np.float16))
-        ax2.text(angle2[1] * du - 120, distance_source[1], distance_source[1].astype(np.float16))
+    #     ax2.cla()
+    #     ax2.plot(distance_source1, 'b')
+    #     ax2.plot(i, distance_source1[i], 'o', c='k')
+    #     ax2.plot(angle2[0] * du, distance_source[0], '.r')
+    #     ax2.plot(angle2[1] * du, distance_source[1], '.r')
+    #     ax2.text(angle2[0] * du - 120, distance_source[0], distance_source[0].astype(np.float16))
+    #     ax2.text(angle2[1] * du - 120, distance_source[1], distance_source[1].astype(np.float16))
 
     fig = plt.figure()
     # ax1 = fig.add_subplot(1, 2, 1)

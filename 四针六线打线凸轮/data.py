@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 from machine import Cam
 from function import *

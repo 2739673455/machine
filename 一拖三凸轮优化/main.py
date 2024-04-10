@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../.")
+sys.path.append(sys.path[0] + '\..')
 import copy
 import numpy as np
 import matplotlib.pyplot as plt

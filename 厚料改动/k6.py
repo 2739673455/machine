@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 from k6_data import K6
 from function import *
@@ -134,7 +134,7 @@ def ConstraintsFunction1(x0):
 
 
 source = K6()
-# source_result = solve1(source)
+source_result = solve1(source)
 # print(source_result)
 ### 对弯针同步###
 # source.n = SynchronousAngle(source)
@@ -164,15 +164,15 @@ dest1.theta3_13 = -3.42369768 * hd
 # print("同步:", np.diff(dest1.p3_k[:, 0]))  # 同步位置时弯针距离差
 # LooperLimitPosition(dest1)  # 弯针极限位置
 
-# x0 = [164.30152435, -3.42369768, -103.5]
-# cons = ({"type": "ineq", "fun": ConstraintsFunction1})
-# result = minimize(fun=OptimizeFunction, x0=x0, args=[source_result, dest1], constraints=cons, bounds=[(None, None), (None, None), (-104.5, -102.5)])
-# print(result)
-# print(result.x)
-# x0 = [165.32575523, -3.42542066, -102.5]  # 改后
-# x0 = [165.42420266, -3.78981852, -102.5]  # 改后
-# result = OptimizeFunction(x0, [source_result, dest1])
-# print(result)
+x0 = [164.30152435, -3.42369768, -103.5]
+cons = ({"type": "ineq", "fun": ConstraintsFunction1})
+result = minimize(fun=OptimizeFunction, x0=x0, args=[source_result, dest1], constraints=cons, bounds=[(None, None), (None, None), (-104.5, -102.5)])
+print(result)
+print(result.x)
+x0 = [165.32575523, -3.42542066, -102.5]  # 改后
+x0 = [165.42420266, -3.78981852, -102.5]  # 改后
+result = OptimizeFunction(x0, [source_result, dest1])
+print(result)
 
 k5 = K6()
 k5.l1_ab = 16.7

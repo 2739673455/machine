@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import shapely
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,16 +14,16 @@ hd = np.pi / 180
 
 
 class Rope():
-    def __init__(self, line, spring_k, damping_k, m, fixed, t):
-        self.original_dist = stringLength(line) / len(line)
-        self.spring_k = spring_k
-        self.damping_k = damping_k
-        self.fixed = fixed
-        self.m = m
-        self.x = line.astype(np.float64)
-        self.v = np.zeros(self.x.shape)
-        self.a = np.zeros(self.x.shape)
-        self.t = t
+    def __init__(self, line, spring_k, damping_k, m, fixed, t):  # 初始化绳子参数
+        self.original_dist = stringLength(line) / len(line)  # 初始绳子上相邻点间距
+        self.spring_k = spring_k  # 弹性系数
+        self.damping_k = damping_k  # 阻尼系数
+        self.fixed = fixed  # 固定点索引
+        self.m = m  # 质量
+        self.x = line.astype(np.float64)  # 位置
+        self.v = np.zeros(self.x.shape)  # 速度
+        self.a = np.zeros(self.x.shape)  # 加速度
+        self.t = t  # 时间间隔
 
     def Forward(self):
         force = self.ForceSpring()
@@ -147,50 +147,52 @@ rope1 = Rope(rope1, spring_k=2e3, damping_k=5, m=1, fixed=[0, -1], t=2e-2)
 
 cam1 = Cam_a()
 cam1.SetCamOutline()
-# cam1.Rotate((72.26917803 - 26.21477644) * hd)
+cam1.Rotate((23.82) * hd)
 cam1.Rotate(np.arange(360) * hd)
 
 length1 = np.zeros(360)
 
-# fig = plt.figure()
-# ax1 = fig.add_subplot(1, 2, 1, projection="3d")
-# ax2 = fig.add_subplot(1, 2, 2)
-# ax1.set_xlim(-10, 10)
-# ax1.set_ylim(-30, 30)
-# ax1.set_zlim(-30, 30)
-# ax1.set_box_aspect([20, 60, 60])
-# ax2.set_xlim(0, 360)
-# ax2.set_ylim(0, 25)
-# ax2.set_xticks(np.arange(0, 360, 20))
-# ax2.set_yticks(np.arange(0, 25, 1))
-# ax2.grid()
+fig = plt.figure(figsize=(15, 6))
+ax1 = fig.add_subplot(1, 2, 1, projection="3d")
+ax2 = fig.add_subplot(1, 2, 2)
+ax1.set_xlim(-10, 10)
+ax1.set_ylim(-30, 30)
+ax1.set_zlim(-30, 30)
+ax1.set_box_aspect([20, 60, 60])
+ax2.set_xlim(0, 360)
+ax2.set_ylim(0, 25)
+ax2.set_xticks(np.arange(0, 360, 20))
+ax2.set_xticks(np.arange(0, 360, 10), minor=True)
+ax2.set_yticks(np.arange(0, 25, 1))
+ax2.grid()
+ax2.grid(which="minor", alpha=0.6)
 
-# plot_dict = dict()
-
-
-# def update(i):
-#     global plot_dict
-#     try:
-#         [plot_dict[i].remove() for i in plot_dict]
-#     except:
-#         pass
-#     for _ in range(3):
-#         rope1.Forward()
-#         rope1.Collision1(cam1, i)
-
-#     length1[i] = stringLength(rope1.x)
-
-# plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
-# plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
-# plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
-# plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
-# plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
+plot_dict = dict()
 
 
-# ax1.view_init(elev=20, azim=20)
-# ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=True)
+def update(i):
+    global plot_dict
+    try:
+        [plot_dict[i].remove() for i in plot_dict]
+    except:
+        pass
+    for _ in range(3):
+        rope1.Forward()
+        rope1.Collision1(cam1, i)
+
+    length1[i] = stringLength(rope1.x)
+
+    # plot_dict['particle'] = ax1.scatter(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='y', s=10)
+    plot_dict['line'], = ax1.plot(rope1.x[:, 0], rope1.x[:, 1], rope1.x[:, 2], color='purple', linewidth=1)
+    plot_dict['cam1'], = ax1.plot3D(np.tile(1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+    plot_dict['cam2'], = ax1.plot3D(np.tile(-1.2, 234), cam1.p[i, :, 0], cam1.p[i, :, 1], 'r')
+    plot_dict['length'], = ax2.plot(np.arange(i), length1[:i], 'b')
+
+
+ax1.view_init(elev=20, azim=20)
+ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=True)
 # ani.save("animation_cam.gif", fps=25, writer="pillow")
-# plt.show()
+plt.show()
 
 
 def outputLineLength(length1):

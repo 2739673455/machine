@@ -116,7 +116,7 @@ def solve(p1, l1, theta1):
     ax.plot(p1['d2'][:, 0], p1['d2'][:, 2], 'b')
     ax.plot([255.7, 255.7, 306.5, 306.5], [8, 10.8, 10.8, 8])
     ax.plot([284.4, 284.4], [8, 10.8], '--')
-    plt.show(block=False)
+    plt.show()
 
 
 if __name__ == '__main__':

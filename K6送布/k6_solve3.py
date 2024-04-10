@@ -1,6 +1,6 @@
 # 差动降本
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 import matplotlib.pyplot as plt
 from function import *

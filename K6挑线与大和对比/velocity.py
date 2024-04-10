@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 from function import *
 from data import dahe, k6

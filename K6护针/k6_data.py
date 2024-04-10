@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 from function import *
 from machine import Machine
 

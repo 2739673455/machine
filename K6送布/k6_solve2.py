@@ -1,6 +1,6 @@
 # 多连杆结构
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 from function import *
 from scipy.optimize import root

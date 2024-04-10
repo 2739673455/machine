@@ -1,7 +1,5 @@
-import os
 import sys
-sys.path.append(os.path.join(os.path.abspath(__file__), '../..'))
-import time
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 import matplotlib.pyplot as plt
 from function import *

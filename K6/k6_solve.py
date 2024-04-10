@@ -1,6 +1,5 @@
-import os
 import sys
-sys.path.append('./..')
+sys.path.append(sys.path[0] + '\..')
 import numpy as np
 import pandas as pd
 from function import *
