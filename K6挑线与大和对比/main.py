@@ -133,26 +133,18 @@ def plot1(dahe_thread_variety, k6_thread_variety, diff_thread):
     fig = plt.figure()
 
     ax1 = fig.add_subplot(2, 1, 1)
-    ax1.plot(k6_left_thread_variety, '-r', lw=0.5, label='K6左')
-    ax1.plot(k6_middle_thread_variety, '--r', lw=0.5, label='K6中')
-    ax1.plot(k6_right_thread_variety, ':r', lw=0.5, label='K6右')
+    ax1.plot(k6_left_thread_variety, '-r', lw=0.5, label='杰克左')
+    ax1.plot(k6_middle_thread_variety, '--r', lw=0.5, label='杰克中')
+    ax1.plot(k6_right_thread_variety, ':r', lw=0.5, label='杰克右')
     ax1.plot(dahe_left_thread_variety, '-g', lw=0.5, label='大和左')
     ax1.plot(dahe_middle_thread_variety, '--g', lw=0.5, label='大和中')
     ax1.plot(dahe_right_thread_variety, ':g', lw=0.5, label='大和右')
     # ax1.plot(k6_2_left_thread_variety, '-b', lw=0.5, label='K6(116右置)左')
     # ax1.plot(k6_2_middle_thread_variety, '--b', lw=0.5, label='K6(116右置)中')
     # ax1.plot(k6_2_right_thread_variety, ':b', lw=0.5, label='K6(116右置)右')
-    ax1.legend()
+    ax1.legend(loc='upper right')
     ax1.grid()
-# 挑线凸轮4.5->4.78\n\
-# 针杆过线板、火柴杆改成和大和一样\n\
-# 火柴杆43->46.67 | 33->32.98 | 23->21.54
-#     ax1.set_title(
-#         "过线板-挑线杆-小过线杆,杰克、大和长度变化量\n\
-# 挑线轴位置105, 左置\n"
-#     )
-    # ax1.set_title("针夹头孔-过线板-挑线杆-小过线杆,杰克、大和长度变化量")
-    # ax1.set_title("针板孔-针夹头孔-过线板-挑线杆-小过线杆,杰克、大和长度变化量")
+    ax1.set_title("杰克与大和挑线量对比")
 
     ax2 = fig.add_subplot(2, 1, 2)
     ax2.plot(diff_left, lw=1, label=f'左 {str(np.max(np.abs(diff_left)))}')

@@ -9,12 +9,12 @@ class JackSource(Machine):
     def __init__(self):
         super(JackSource, self).__init__()
         self.theta4_b1ab2 = -66.5 * self.hd
-        self.theta4_b1ab3 = -62.5 * self.hd  # -57.5
+        self.theta4_b1ab3 = -62.5 * self.hd
 
         self.theta4_0d2d3 = -13 * self.hd
         self.theta4_0xw = -21 * self.hd
 
-    def solveTrajectory(self, theta1, theta2):
+    def solveStroke(self, theta1, theta2):
         self.theta4_0d2d3 = theta1 * self.hd
         self.theta4_0xw = theta2 * self.hd
         self.FabricFeedSolve()
@@ -78,7 +78,7 @@ class JackV1(Machine):  # 转换曲柄上移
         self.p4_r1 = p_rp(self.p4_r1_, self.theta4_0b1k2, 0) + self.p4_h2
         self.p4_r2 = p_rp(self.p4_r2_, self.theta4_0b1k2, 0) + self.p4_h2
 
-    def solveTrajectory(self, theta1, theta2):
+    def solveStroke(self, theta1, theta2):
         self.theta4_0d2d3 = theta1 * self.hd
         self.theta4_0xw = theta2 * self.hd
         self.FabricFeedSolve()

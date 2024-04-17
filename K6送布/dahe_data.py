@@ -111,7 +111,7 @@ class Dahe(Machine):
         self.p4_r1 = p_rp(np.array([0, 2.5, 28.05]), self.theta4_0b1k2, 0) + self.p4_h2
         self.p4_r2 = p_rp(np.array([0, 10.75, 28.05]), self.theta4_0b1k2, 0) + self.p4_h2
 
-    def solveTrajectory(self, theta1, theta2):
+    def solveStroke(self, theta1, theta2):
         self.theta4_0d2d3 = theta1 * self.hd
         self.theta4_0yz = theta2 * self.hd
         self.FabricFeedSolve()
@@ -120,5 +120,5 @@ class Dahe(Machine):
 if __name__ == '__main__':
     dahe = Dahe()
     # dahe.n = np.array([[23.44889345 * hd]])
-    dahe.solveTrajectory(-15.3, -9)
+    dahe.solveStroke(-15.3, -9)
     print(dahe.p4_l1)

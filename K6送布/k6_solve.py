@@ -17,7 +17,7 @@ def fitDahe(jack):  # 送布牙行程调成和大和一样
     dahe_l1_trajectory = np.ptp(dahe.p4_l1[:, 1])
 
     def optimizeFunction(x0):
-        jack.solveTrajectory(x0[0], jack.theta4_0xw * jack.du)
+        jack.solveStroke(x0[0], jack.theta4_0xw * jack.du)
         return (np.ptp(jack.p4_l1[:, 1]) - dahe_l1_trajectory)**2
 
     x0 = [-13]
@@ -34,9 +34,6 @@ def Plot1(dahe, jack_v1, jack_source):
     jack_source.p4_l1 = jack_source.p4_l1 - jack_source.p4_l1[0] + dahe.p4_l1[0] + np.array([0, 0.1, -0.15])
     jack_v1.p4_l1 = jack_v1.p4_l1 - jack_v1.p4_l1[0] + dahe.p4_l1[0] + np.array([0, 0.025, -0.01])
     ax1.plot([3, 10], [39.3, 39.3], 'k', lw=2, label="针板")
-    # ax1.plot([], [], 'g', label="大和")
-    # ax1.plot([], [], 'b', label="杰克(改前)")
-    # ax1.plot([], [], 'r', label="杰克(改后)")
     ax1.plot(dahe.p4_l1[:, 1], dahe.p4_l1[:, 2], 'g', lw=0.5, label="大和")
     ax1.plot(jack_source.p4_l1[:, 1], jack_source.p4_l1[:, 2], 'b', lw=0.5, label="杰克(改前)")
     ax1.plot(jack_v1.p4_l1[:, 1], jack_v1.p4_l1[:, 2], 'r', lw=0.5, label="杰克(改后)")
@@ -61,36 +58,20 @@ def Plot1(dahe, jack_v1, jack_source):
     ax1.set_aspect(1)
     plt.show()
 
-    # plot_dict = dict()
-
-    # def update(i):
-    #     nonlocal plot_dict
-    #     try:
-    #         [plot_dict[j].remove() for j in plot_dict]
-    #     except:
-    #         pass
-    #     plot_dict['dahe'], = ax1.plot(dahe.p4_l1[:i, 1], dahe.p4_l1[:i, 2], lw=1, c='g')
-    #     plot_dict['jack_source'], = ax1.plot(jack_source.p4_l1[:i, 1], jack_source.p4_l1[:i, 2], lw=1, c='b')
-    #     plot_dict['jack_v1'], = ax1.plot(jack_v1.p4_l1[:i, 1], jack_v1.p4_l1[:i, 2], lw=1, c='r')
-
-    # ani = FuncAnimation(fig, update, frames=360, interval=5, repeat=False)
-    # # ani.save("animation_FabricFeed.gif", fps=25, writer="pillow")
-    # plt.show()
-
 
 dahe = Dahe()
-dahe.solveTrajectory(1, -5)  # 针距 小6.2 ~ 大-20.3,差动 小-9.6 ~ 大15.5
+dahe.solveStroke(-17.3, -5)  # 针距 小6.2 ~ 大-20.3,差动 小-9.6 ~ 大15.5
 
 jack_source = JackSource()
 jack_source.l4_ab1 = 1.2  # 主轴抬牙偏心
 jack_source.theta4_0d2d3 = fitDahe(jack_source)
-jack_source.solveTrajectory(jack_source.theta4_0d2d3, -21)  # 针距 小12 ~ 大-13,差动 小-25 ~ 大-2
+jack_source.solveStroke(jack_source.theta4_0d2d3, -21)  # 针距 小12 ~ 大-13,差动 小-25 ~ 大-2
 
 jack_v1 = JackV1()
 jack_v1.l4_ts = 15  # 15
 jack_v1.theta4_uts = -134.17943223 * hd  # -147.154682283,-134.17943223
 jack_v1.theta4_0d2d3 = fitDahe(jack_v1)
-jack_v1.solveTrajectory(jack_v1.theta4_0d2d3, 44.5)  # 针距 小12 ~ 大-13,差动 小41 ~ 大61
+jack_v1.solveStroke(jack_v1.theta4_0d2d3, 44.5)  # 针距 小12 ~ 大-13,差动 小41 ~ 大61
 
 # print("杰克_source|针距", np.ptp(jack_source.p4_l1[:, 1]), " 差动", np.ptp(jack_source.p4_r1[:, 1]))
 # print("杰克_v1|针距", np.ptp(jack_v1.p4_l1[:, 1]), " 差动", np.ptp(jack_v1.p4_r1[:, 1]))
